@@ -51,6 +51,7 @@ type CambriconDevicePlugin struct {
 // NewCambriconDevicePlugin returns an initialized CambriconDevicePlugin
 func NewCambriconDevicePlugin(o Options) *CambriconDevicePlugin {
 	devs, devsInfo := getDevices(o.Mode, int(o.VirtualizationNum))
+	log.Printf("deivice info is ",devsInfo)
 	return &CambriconDevicePlugin{
 		devs:       devs,
 		devsInfo:   devsInfo,
@@ -168,9 +169,13 @@ func (m *CambriconDevicePlugin) unhealthy(dev *pluginapi.Device) {
 
 func (m *CambriconDevicePlugin) PrepareResponse(req *pluginapi.ContainerAllocateRequest) pluginapi.ContainerAllocateResponse {
 
-	resp := pluginapi.ContainerAllocateResponse{}
+	//resp := pluginapi.ContainerAllocateResponse{}
 	devpaths := m.uuidToPath(req.DevicesIDs)
-
+	resp := pluginapi.ContainerAllocateResponse{
+		Envs: map[string]string{
+			"INSPUR_MLU_VISIBLE_DEVICES": strings.Join(req.DevicesIDs, ","),
+		},
+	}
 	if m.deviceList.hasC10Dev {
 		if m.deviceList.hasCnmonDev {
 			addDevice(&resp, mlu100MonitorDeviceName, mlu100MonitorDeviceName)
